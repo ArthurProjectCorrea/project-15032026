@@ -16,7 +16,7 @@ export async function proxy(request: NextRequest) {
           return request.cookies.getAll();
         },
         setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value, options }) =>
+          cookiesToSet.forEach(({ name, value }) =>
             request.cookies.set(name, value)
           );
           supabaseResponse = NextResponse.next({
@@ -35,14 +35,74 @@ export async function proxy(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  // if hitting /private, block unauthenticated users before rendering
+  const pathname = request.nextUrl.pathname;
+
+  // Authentication check for private routes
   if (
-    request.nextUrl.pathname === '/private' ||
-    request.nextUrl.pathname.startsWith('/private/')
+    pathname === '/private' ||
+    pathname.startsWith('/private/') ||
+    pathname === '/admin' ||
+    pathname.startsWith('/admin/') ||
+    pathname === '/'
   ) {
+    // Skip auth check if it is explicitly a public route
+    if (pathname.startsWith('/public/')) {
+      return supabaseResponse;
+    }
+
     if (!user) {
-      // redirect to login page
+      // Avoid redirect loops if already on login
+      if (pathname === '/login') return supabaseResponse;
       return NextResponse.redirect(new URL('/login', request.url));
+    }
+
+    // Role-based redirection and protection using JWT claims (app_metadata)
+    // This is MUCH faster as it doesn't require a DB query in the middleware
+    let role = user.app_metadata?.role as string | undefined;
+
+    // Fallback: If role is not in metadata (legacy users or sync delay), fetch it
+    if (!role) {
+      const { data: userRole } = await supabase
+        .from('user_roles')
+        .select('roles(name)')
+        .eq('user_id', user.id)
+        .single();
+      const data = userRole as unknown as { roles: { name: string } | null };
+      role = data?.roles?.name;
+    }
+
+    const dest = role === 'Admin' ? '/admin' : '/';
+
+    // If on /private, redirect to the correct dashboard
+    if (pathname === '/private' || pathname.startsWith('/private/')) {
+      return NextResponse.redirect(new URL(dest, request.url));
+    }
+
+    // Admin redirection: If on root, go to /admin
+    if (role === 'Admin') {
+      if (pathname === '/') {
+        return NextResponse.redirect(new URL('/admin', request.url));
+      }
+    }
+
+    // Client protection: If on /admin, go to /
+    if (role === 'Clients') {
+      if (pathname === '/admin' || pathname.startsWith('/admin/')) {
+        return NextResponse.redirect(new URL('/', request.url));
+      }
+    }
+  }
+
+  // Redirect logged in users away from auth pages
+  // ONLY if they are NOT in a redirect loop situation
+  if (user && (pathname === '/login' || pathname === '/signup')) {
+    const role = user.app_metadata?.role as string | undefined;
+
+    // If we don't know the role yet, don't redirect away from login yet
+    // to avoid infinite loops if the destination page also redirects back
+    if (role) {
+      const dest = role === 'Admin' ? '/admin' : '/';
+      return NextResponse.redirect(new URL(dest, request.url));
     }
   }
 

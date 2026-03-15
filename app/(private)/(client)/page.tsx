@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation';
-import { createClient } from '@/lib/supabase/server';
+import { getProfile } from '@/lib/supabase/profile';
 import {
   Card,
   CardContent,
@@ -13,23 +13,36 @@ import { LogoutButton } from '@/components/auth/logout-button';
 import { ModeToggle } from '@/components/mode-toggle';
 import { Badge } from '@/components/ui/badge';
 import { getProjectVersion } from '@/lib/version';
+import { createClient } from '@/lib/supabase/server';
+import { ProfileNotFound } from '@/components/auth/profile-not-found';
 
 export default async function PrivatePage() {
-  const supabase = await createClient();
+  const profile = await getProfile();
   const version = getProjectVersion();
 
+  // Optimized redirection to avoid loops
+  if (!profile) {
+    const supabase = await createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      redirect('/login');
+    }
+
+    return <ProfileNotFound />;
+  }
+
+  // Get email from auth for display (profile table doesn't have it by default)
+  const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!user) {
-    redirect('/login');
-  }
-
-  const name =
-    user.user_metadata?.full_name || user.user_metadata?.name || 'Usuário';
-  const email = user.email;
-  const avatarUrl = user.user_metadata?.avatar_url;
+  const name = profile.name || 'Usuário';
+  const email = user?.email;
+  const avatarUrl = user?.user_metadata?.avatar_url;
   const initials = name
     .split(' ')
     .map((n: string) => n[0])
@@ -50,12 +63,15 @@ export default async function PrivatePage() {
           <div className="space-y-1">
             <CardTitle className="text-2xl">{name}</CardTitle>
             <CardDescription>{email}</CardDescription>
-            <Badge
-              variant="outline"
-              className="mt-2 font-mono text-[10px] opacity-60"
-            >
-              v{version}
-            </Badge>
+            <div className="mt-2 flex justify-center gap-2">
+              <Badge variant="secondary">{profile.role}</Badge>
+              <Badge
+                variant="outline"
+                className="font-mono text-[10px] opacity-60"
+              >
+                v{version}
+              </Badge>
+            </div>
           </div>
         </CardHeader>
         <CardContent className="text-center">
