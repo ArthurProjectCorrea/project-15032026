@@ -51,7 +51,7 @@ export default async function PrivatePage() {
     .substring(0, 2);
 
   return (
-    <main className="flex min-h-screen items-center justify-center p-4 sm:p-8">
+    <main className="flex min-h-screen items-center justify-center p-4 md:p-6">
       <Card className="w-full max-w-md">
         <CardHeader className="flex flex-col items-center gap-4 text-center">
           <Avatar className="size-20">

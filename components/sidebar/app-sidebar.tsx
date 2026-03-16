@@ -1,10 +1,11 @@
-"use client"
+'use client';
 
-import * as React from "react"
-import { Command } from "lucide-react"
-import Link from "next/link"
-import { NavMain } from "@/components/sidebar/nav-main"
-import { NavUser } from "@/components/sidebar/nav-user"
+import * as React from 'react';
+import { Command } from 'lucide-react';
+import Link from 'next/link';
+import { NavMain } from '@/components/sidebar/nav-main';
+import { NavActions } from '@/components/sidebar/nav-actions';
+import { NavUser } from '@/components/sidebar/nav-user';
 import {
   Sidebar,
   SidebarContent,
@@ -14,18 +15,18 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarRail,
-} from "@/components/ui/sidebar"
-import { sidebarData } from "@/lib/sidebar-data"
+} from '@/components/ui/sidebar';
+import { sidebarData } from '@/lib/sidebar-data';
 
 export function AppSidebar({
   user,
   ...props
 }: React.ComponentProps<typeof Sidebar> & {
   user: {
-    name: string
-    email: string
-    avatar: string
-  }
+    name: string;
+    email: string;
+    avatar: string;
+  };
 }) {
   return (
     <Sidebar collapsible="icon" {...props}>
@@ -34,7 +35,7 @@ export function AppSidebar({
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" asChild>
               <Link href="/admin">
-                <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
+                <div className="bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg">
                   <Command className="size-4" />
                 </div>
                 <div className="grid flex-1 text-left text-sm leading-tight">
@@ -48,11 +49,12 @@ export function AppSidebar({
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={sidebarData.navMain} />
+        <NavActions />
       </SidebarContent>
       <SidebarFooter>
         <NavUser user={user} />
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>
-  )
+  );
 }
