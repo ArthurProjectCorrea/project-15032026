@@ -16,6 +16,8 @@ import { getProjectVersion } from '@/lib/version';
 import { createClient } from '@/lib/supabase/server';
 import { ProfileNotFound } from '@/components/auth/profile-not-found';
 
+export const dynamic = 'force-dynamic';
+
 export default async function PrivatePage() {
   const profile = await getProfile();
   const version = getProjectVersion();

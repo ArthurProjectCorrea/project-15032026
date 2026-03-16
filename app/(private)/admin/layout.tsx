@@ -8,6 +8,9 @@ import {
 } from '@/components/ui/sidebar';
 import { getProfile } from '@/lib/supabase/profile';
 import { createClient } from '@/lib/supabase/server';
+import React from 'react';
+
+export const dynamic = 'force-dynamic';
 
 export default async function AdminLayout({
   children,

@@ -4,7 +4,7 @@ import { getProductByGtin } from '@/lib/cosmos';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { gtin: string } }
+  { params }: { params: Promise<{ gtin: string }> }
 ) {
   const { gtin } = await params;
   const supabase = await createClient();
