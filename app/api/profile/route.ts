@@ -39,16 +39,35 @@ export async function GET() {
     console.error('API Profile - Role Fetch Error:', roleError.message);
   }
 
-  // Handle various response shapes from joins
+  // handle role identification
   let roleName: string | null = null;
-  const rawRole = userRole?.role;
 
-  if (rawRole) {
-    if (Array.isArray(rawRole)) {
-      roleName = rawRole[0]?.name || null;
-    } else {
-      roleName = (rawRole as { name: string }).name || null;
+  // 1. Try role from profile table first (Master Source)
+  if (
+    profile &&
+    typeof profile === 'object' &&
+    'role' in profile &&
+    profile.role
+  ) {
+    roleName = profile.role as string;
+    console.log(
+      `API Profile - Role from profiles (MASTER) for ${user.email}: ${roleName}`
+    );
+  }
+
+  // 2. Fallback to user_roles join if profile doesn't have it
+  if (!roleName) {
+    const rawRole = userRole?.role;
+    if (rawRole) {
+      if (Array.isArray(rawRole)) {
+        roleName = (rawRole[0] as { name: string })?.name || null;
+      } else {
+        roleName = (rawRole as { name: string }).name || null;
+      }
     }
+    console.log(
+      `API Profile - Role from user_roles fallback for ${user.email}: ${roleName}`
+    );
   }
 
   // Self-repair: If no role is found anywhere, attempt to assign 'Clients' role

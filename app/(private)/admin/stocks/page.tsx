@@ -94,7 +94,14 @@ export default function StocksPage() {
     if (statusFilter === 'all') return true;
 
     const expirationDate = item.expiration_date;
-    if (!expirationDate) return statusFilter === 'no_date';
+
+    // If it's a 'no_date' filter, only return items without a date
+    if (statusFilter === 'no_date') {
+      return !expirationDate;
+    }
+
+    // For other status filters, if there's no date, it's not a match
+    if (!expirationDate) return false;
 
     const days = differenceInDays(parseISO(expirationDate), new Date());
 
@@ -102,7 +109,7 @@ export default function StocksPage() {
     if (statusFilter === 'expiring_soon') return days >= 0 && days <= 30;
     if (statusFilter === 'valid') return days > 30;
 
-    return true;
+    return false;
   });
 
   // Summary Stats

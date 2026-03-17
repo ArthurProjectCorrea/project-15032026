@@ -17,10 +17,10 @@ export const getProfile = cache(async (): Promise<UserProfile | null> => {
   try {
     const supabase = await createClient();
     const {
-      data: { session },
-    } = await supabase.auth.getSession();
+      data: { user },
+    } = await supabase.auth.getUser();
 
-    if (!session) return null;
+    if (!user) return null;
 
     // Use absolute URL for server-side SSR fetch
     // Note: In a real production env, this usually comes from an env var
@@ -36,7 +36,7 @@ export const getProfile = cache(async (): Promise<UserProfile | null> => {
       },
       next: {
         revalidate: 60, // Cache for 1 minute
-        tags: [`profile-${session.user.id}`],
+        tags: [`profile-${user.id}`],
       },
     });
 
