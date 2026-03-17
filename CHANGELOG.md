@@ -1,3 +1,9 @@
+# [1.2.0](https://github.com/ArthurProjectCorrea/project-15032026/compare/v1.1.0...v1.2.0) (2026-03-17)
+
+### Features
+
+- implement admin stock management page, enhance middleware role resolution, and add profile API endpoints ([c308e30](https://github.com/ArthurProjectCorrea/project-15032026/commit/c308e306c9369c9173cdb2ca0b14100bee175824))
+
 # [1.1.0](https://github.com/ArthurProjectCorrea/project-15032026/compare/v1.0.0...v1.1.0) (2026-03-16)
 
 ### Features
